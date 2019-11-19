@@ -1,6 +1,6 @@
 let cellSize = 32;
-let screenWidth = window.innerWidth;
-let screenHeight = window.innerHeight;
+let screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+let screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 let width;
 let height;
 let cellWidth;
@@ -54,13 +54,16 @@ function init() {
 	rate = 5;
 	frameRate(rate);
 	player = new Snake(cellWidth / 2, cellHeight / 2, cellSize);
-	food = new Food(cellSize);
+	food = new Food(cellSize, player.snake);
 	state = 0;
 }
 
 function title() {
-	let offsetX = 0.5 * cellWidth - 12;
-	let offsetY = 0.5 * cellHeight - 7;
+	
+	let offsetX = 0.5 * cellWidth - 11;
+	let offsetY = 0.5 * cellHeight - 3;
+
+
 	let t = [
 		"######",  
 		"#     #   ##   # #    # #####   ####  #    #", 
@@ -103,11 +106,11 @@ function game() {
 		}
 		
 		player.glupsFood  = food;
-		food = new Food(cellSize);
+		food = new Food(cellSize, player.snake);
 		rate += 0.3;
 		rate = constrain(rate, 5, 60);
 		frameRate(rate);
-	} else if (player.selfEating() || player.snake[0].x < 0 || player.snake[0].x > cellWidth || player.snake[0].y < 0 || player.snake[0].y > cellHeight) {
+	} else if (player.selfEating() || player.snake[0].x < 0 || player.snake[0].x >= cellWidth || player.snake[0].y < 0 || player.snake[0].y >= cellHeight) {
 		init();
 	}
 }
@@ -129,9 +132,21 @@ function draw() {
 }
 
 class Food {
-	constructor(size) {
-		this.x = round(random(cellWidth - 1));
-		this.y = round(random(cellHeight - 1));
+	constructor(size, snake) {
+		let x,y;
+		let goodFood = true;
+		do {
+			x =  round(random(cellWidth - 1));
+			y = round(random(cellHeight - 1));
+			for(let ring of snake) {
+				if(ring.x == x && ring.y == y) {
+					goodFood = false;
+					break;
+				}
+			}
+		} while (!goodFood);
+		this.x = x;
+		this.y = y;
 		this.color = palette[round(random(0, palette.length - 1))];
 		this.w = size;
 
@@ -168,7 +183,7 @@ class Snake {
             }
             
 		}
-		this.snake[0] = {x: xo, y: yo, color: {r: 255, g: 0, b: 0}, paper: this.paper};
+		this.snake[0] = {x: round(xo), y: round(yo), color: {r: 255, g: 0, b: 0}, paper: this.paper};
 
 	}
 
