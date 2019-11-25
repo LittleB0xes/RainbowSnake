@@ -51,8 +51,7 @@ function setup() {
 }
 
 function init() {	
-	rate = 5;
-	frameRate(rate);
+	rate = 12;
 	player = new Snake(cellWidth / 2, cellHeight / 2, cellSize);
 	food = new Food(cellSize, player.snake);
 	state = 0;
@@ -81,7 +80,7 @@ function title() {
 		"     #     # #   ## #    # #   #  #",      
 		"      #####  #    # #    # #    # ###### "
 	];
-
+	frameRate(5);
 	for (let l = 0; l < 15; l++) {
 		for(let c = 0; c < t[l].length; c++) {
 			if(t[l][c] === '#') {
@@ -96,20 +95,23 @@ function title() {
 
 function game() {
 	food.show();
-	player.update();
-	player.show();
+	if (frameCount % round(constrain(rate, 1, 12)) == 0) {
+		player.update();
+	}
+	
+	player.show();	
+
 	
 	if (player.eat(food)) {
 		if (player.snake.length > 1) {
 			food.x = player.snake[1].x;
 			food.y = player.snake[1].y;	
 		}
-		
 		player.glupsFood  = food;
 		food = new Food(cellSize, player.snake);
-		rate += 0.3;
-		rate = constrain(rate, 5, 60);
-		frameRate(rate);
+		rate -= 0.3;
+		
+		console.log(frameRate());
 	} else if (player.selfEating() || player.snake[0].x < 0 || player.snake[0].x >= cellWidth || player.snake[0].y < 0 || player.snake[0].y >= cellHeight) {
 		init();
 	}
@@ -130,6 +132,14 @@ function draw() {
 
 	
 }
+
+/*
+class RainbowHole{
+	constructor() {
+
+	}
+}
+*/
 
 class Food {
 	constructor(size, snake) {
@@ -183,7 +193,7 @@ class Snake {
             }
             
 		}
-		this.snake[0] = {x: round(xo), y: round(yo), color: {r: 255, g: 0, b: 0}, paper: this.paper};
+		this.snake.push({x: round(xo), y: round(yo), color: {r: 255, g: 0, b: 0}, paper: this.paper});
 
 	}
 
@@ -239,7 +249,7 @@ function keyPressed() {
 		case UP_ARROW : if (player.dir.y == 0) {player.dir = {x: 0, y: -1};} break;
 		case RIGHT_ARROW : if (player.dir.x == 0) {player.dir = {x: 1, y: 0};} break;
 		case DOWN_ARROW : if (player.dir.y == 0) {player.dir = {x: 0, y: 1};} break;
-		case 32 : state = 1; break;
+		case 32 : state = 1; frameRate(30); break;
 	}
 }
 
@@ -247,6 +257,7 @@ function mousePressed() {
 	switch(state) {
 		case 0:
 			state = 1;
+			frameRate(30);
 			break;
 		case 1:
 			let touchVector = createVector(mouseX - screenWidth / 2, mouseY - screenHeight / 2);
